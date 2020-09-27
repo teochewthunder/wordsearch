@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Word Search</title>
+
+		<style>
+			div {outline: 0px solid #FF0000;}
+
+			body
+			{
+				font-size: 12px;
+				font-family: verdana;
+			}
+
+			.container
+			{
+				width: 800px;
+				margin: 0 auto 0 auto;
+			}
+
+			.dashboard
+			{
+				width: 250px;
+				height: 350px;
+				float: left;
+			}
+
+			.dashboard .title
+			{
+				width: 100%;
+				height: 150px;
+				font-weight: bold;
+				text-align: center;
+			}
+
+			.dashboard .timer
+			{
+				width: 100%;
+				height: 150px;
+				font-weight: bold;
+				text-align: center;
+				margin-top: 20px;
+			}
+
+			.dashboard .seconds
+			{
+				width: 100%;
+				font-size: 4em;
+			}
+
+			button
+			{
+				width: 1.5em;
+				height: 1.5em;
+				font-size: 3em;
+				background-color: rgba(255, 200, 0, 1);
+				color: rgba(255, 255, 255, 1);
+				border-radius: 50%;
+				border: 0px solid red;
+				cursor: pointer;
+				margin: 10 auto 10px auto;
+				clear: both;
+			}
+
+			button:hover
+			{
+				background-color: rgba(255, 200, 0, 0.5);
+				color: rgba(255, 200, 0, 1);	
+			}
+
+			.dashboard .message
+			{
+				width: 100%;
+				height: 50px;
+				float: left;
+			}
+
+			.wordgrid
+			{
+				width: 500px;
+				height: 500px;
+				float: right;
+			}
+
+			.theme
+			{
+				width: 250px;
+				height: 100px;
+				float: left;
+				margin-top: 20px;
+			}
+
+			.theme .title
+			{
+				width: 140px;
+				float: right;
+				font-size: 2em;	
+				font-weight: bold;
+			}
+
+			.theme .description
+			{
+				width: 140px;
+				float: right;
+			}
+
+			.theme .picture
+			{
+				width: 100px;
+				height: 100px;
+				float: left;
+				margin-top: -40px;
+				background-repeat: no-repeat;
+				background-position: 50% 50%;
+			}
+
+			.score
+			{
+				width: 250px;
+				height: 100px;
+				float: left;
+			}
+
+			.score .meter
+			{
+				width: 100%;
+				height: 20px;
+				border-radius: 5px;
+				background-color: rgba(255, 200, 0, 0.3);
+				overflow: hidden;
+			}
+
+			.score .meter .fill
+			{
+				width: 100%;
+				height: 100%;
+				color: rgba(255, 255, 255, 1);
+				text-align: right;
+				font-weight: bold;
+			}
+
+			.score_bad
+			{
+				background-color: rgba(100, 0, 0, 1);
+			}
+
+			.score_ok
+			{
+				background-color: rgba(255, 0, 0, 1);
+			}
+
+			.score_good
+			{
+				background-color: rgba(255, 100, 0, 1);
+			}
+
+			.score_excellent
+			{
+				background-color: rgba(255, 255, 0, 1);
+			}
+
+			.letter
+			{
+				width: 4%;
+				height: 4%;
+				margin: 1% 1% 0 0;
+				float: left;
+				color: rgba(255, 200, 0, 1);
+				cursor: pointer;
+				text-align: center;
+				font-size: 1.2em;
+				font-weight: bold;
+				text-transform: uppercase;
+				border-radius: 50%;
+				-webkit-transition: all 1s;
+				transition: all 1s;
+			}
+
+			.letter:hover
+			{
+				color: rgba(255, 0, 0, 1);
+			}
+
+			.correct
+			{
+				background-color: rgba(255, 200, 0, 1);
+				color: rgba(255, 255, 255, 1);
+			}
+
+			.wrong
+			{
+				background-color: rgba(255, 0, 0, 1);
+				color: rgba(255, 255, 255, 1);
+			}
+		</style>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script>
+			let themes = 
+			[
+				{
+					title: "Sea Life",
+					picture: "sealife",
+					description: "Look for all life you can find in the oceans.",
+					words: ["shark", "coral", "whale", "starfish", "jellyfish", "turtle", "anemone", "octopus", "swordfish", "squid", "lobster", "seahorse", "walrus", "lamprey", "prawn", "oyster", "barracuda", "mackerel", "clownfish", "plankton"]
+				},
+				{
+					title: "Birds",
+					picture: "birds",
+					description: "Look for all kinds of birds.",
+					words: ["pelican", "kingfisher", "woodpecker", "swallow", "sparrow", "eagle", "hummingbird", "cuckoo", "robin", "raven", "penguin", "pigeon", "albatross", "ostrich", "goose", "flamingo", "nightingale", "thrush", "crane", "heron"]
+				},
+				{
+					title: "Food",
+					picture: "food",
+					description: "Look for anything you can eat.",
+					words: ["butter", "bread", "yoghurt", "mutton", "pudding", "cereal", "steak", "noodles", "porridge", "salad", "sandwich", "omelette", "cupcake", "bacon", "cupcake", "chocolate", "sugar", "pancake", "pizza", "burger"]
+				},
+				{
+					title: "Sports",
+					picture: "sports",
+					description: "Look for anything related to sports such as people, places or equipment.",
+					words: ["stadium", "hockey", "badminton", "referee", "umpire", "football", "discus", "goalkeeper", "baseball", "cricket", "tennis", "racquet", "golfer", "boxer", "javelin", "track", "arena", "archery", "medal", "trophy"]
+				},
+				{
+					title: "Music",
+					picture: "music",
+					description: "Look for anything related to music such as instruments or people.",
+					words: ["choir", "chorus", "harmonica", "orchestra", "trumpet", "trombone", "piano", "melody", "ballard", "clarinet", "accordion", "flute", "guitar", "cello", "violin", "fiddle", "conductor", "rhythm", "zither", "xylophone"]
+				}
+			];
+
+			let puzzle = 
+			{
+				timer: undefined,
+				seconds: 0,
+				maxSize: 20,
+				maxWords: 10,
+				squares: [],
+				words: [],
+				themeIndex: 0,
+				begin: function ()
+				{
+					this.themeIndex = this.generateRandomNo(themes.length);
+					this.assignWords();
+					this.displayTheme();
+					this.populateGrid();
+					this.detectScore();
+					this.seconds = 300;
+					this.decrementCounter();
+					$(".dashboard .message").html("Search for words both horizontal and vertical. Each word is five letters and longer.");
+					$("#btnGo").html("&#8634;");
+				},
+				assignWords: function()
+				{
+					themeIndex = this.themeIndex;
+					this.words = [];
+
+					var possibleWordList = themes[themeIndex].words;
+
+					while (this.words.length < this.maxWords)
+					{
+						var assignedWord = possibleWordList[this.generateRandomNo(possibleWordList.length)];
+
+						this.words.push({word: assignedWord, assigned: false});
+						possibleWordList = possibleWordList.filter((x) => { return x != assignedWord; });
+					}
+				},				
+				decrementCounter: function ()
+				{
+					if (this.timer == undefined)
+					{
+						this.timer = setInterval
+						(
+							() =>
+							{
+								if (this.seconds > 0) 
+								{
+									this.seconds = this.seconds - 1;
+								}
+								else
+								{
+									clearInterval(this.timer);
+									this.timer = undefined;	
+									$(".dashboard .message").html("Time's up! Better luck next time!");
+									$("#btnGo").html("&#9654;");
+								}
+
+								$(".dashboard .timer .seconds").html(this.seconds);
+
+								if (this.detectScore() == 100)
+								{
+									clearInterval(this.timer);
+									this.timer = undefined;
+									$(".dashboard .message").html("Congrats! You've won!");
+									$("#btnGo").html("&#9654;");
+								}								
+							}
+							,1000
+						)
+					}
+				},
+				detectScore: function ()
+				{
+					$(".score .meter .fill")
+					.removeClass("score_bad")
+					.removeClass("score_ok")
+					.removeClass("score_good")
+					.removeClass("score_excellent");
+
+					var selectedCorrectly = 0;
+					var correct = 0;
+
+					for (var x = 0; x < this.maxSize; x++)
+					{
+						for (var y = 0; y < this.maxSize; y++)
+						{
+							if (this.squares[x][y].correct) correct++;
+							if (this.squares[x][y].correct && this.squares[x][y].selected) selectedCorrectly++;
+						}	
+					}
+
+					var percentage = (selectedCorrectly / correct) * 100;
+					if (percentage < 0) percentage = 0;
+
+					$(".score .meter .fill").attr("style", "margin-left:-" + (100 - percentage) + "%");
+
+					if (percentage > 0) $(".score .meter .fill").addClass("score_bad");
+					if (percentage > 10) $(".score .meter .fill").html(percentage.toFixed(0) + "%");
+					if (percentage > 40) $(".score .meter .fill").removeClass("score_bad").addClass("score_ok");
+					if (percentage > 60) $(".score .meter .fill").removeClass("score_ok").addClass("score_good");
+					if (percentage > 80) $(".score .meter .fill").removeClass("score_good").addClass("score_excellent");
+
+					return percentage;
+				}, 				
+				populateGrid: function ()
+				{
+					$(".wordgrid").html("");
+					this.squares = [];
+
+					for (var x = 0; x < this.maxSize; x++)
+					{
+						this.squares[x] = [];
+
+						for (var y = 0; y < this.maxSize; y++)
+						{
+							this.squares[x].push
+							(
+								{
+									letter: "",
+									selected: false,
+									correct: false,
+									dir: undefined,
+									intersected: false
+								}
+							);
+
+							var square = $("<div><div>");
+							square.attr("data-x", x);
+							square.attr("data-y", y);
+							square.addClass("letter");
+							square.click
+							(
+								(e) => 
+								{
+									this.displaySelected(e.currentTarget.dataset.x, e.currentTarget.dataset.y);
+								}
+							);
+
+							$(".wordgrid").append(square);
+						}	
+					}
+
+					var unassigned = [];
+					var i;
+					do
+					{
+						this.populateGridWithWords();
+
+						unassigned = this.words.filter((x) => {return !x.assigned;});
+					}
+					while (unassigned.length > 0);
+
+					for (var x = 0; x < this.maxSize; x++)
+					{
+						for (var y = 0; y < this.maxSize; y++)
+						{
+							if (this.squares[x][y].letter == "")
+							{
+								var randomChar = String.fromCharCode(this.generateRandomNo(25) + 97);
+								this.squares[x][y].letter = randomChar;
+								$(".letter[data-x=" + x + "][data-y=" + y + "]").html(randomChar);
+							}
+						}	
+					}						
+				},
+				populateGridWithWords: function()
+				{
+					for (var x = 0; x < this.maxSize; x++)
+					{
+						for (var y = 0; y < this.maxSize; y++)
+						{
+							this.squares[x][y].letter = "";
+							this.squares[x][y].correct = false;
+							this.squares[x][y].dir = undefined;
+							this.squares[x][y].intersected = false;
+							$(".letter[data-x=" + x + "][data-y=" + y + "]").html("");
+						}	
+					}
+
+					for (var i = 0; i < this.words.length; i++)
+					{
+						this.words[i].assigned = false;
+
+						var word = this.words[i].word;
+						var possibleSlots = [];
+
+						for (var x = 0; x < this.maxSize; x++)
+						{
+							for (var y = 0; y < this.maxSize; y++)
+							{
+								if (this.isWordSpaceAvailable(x, y, 0, word))
+								{
+									possibleSlots.push({x: x, y: y, dir: 0});
+								}
+
+								if (this.isWordSpaceAvailable(x, y, 1, word))
+								{
+									possibleSlots.push({x: x, y: y, dir: 1});
+								}	
+
+								if (possibleSlots.length == 0) return;							
+							}	
+						}	
+
+						var slotIndex = 0;
+						var slot;
+
+						var possibleSlots_intersected = possibleSlots.filter((s) => {return this.squares[s.x][s.y].letter != "";});
+
+						if (possibleSlots_intersected.length == 0)
+						{
+							slotIndex = this.generateRandomNo(possibleSlots.length);
+							slot = possibleSlots[slotIndex];
+							this.squares[slot.x][slot.y].intersected = true;
+						}
+						else
+						{
+							slotIndex = this.generateRandomNo(possibleSlots_intersected.length);
+							slot = possibleSlots_intersected[slotIndex];
+						}
+
+						for (var j = 0; j < word.length; j++)
+						{
+							var letters = word.split("");
+
+							if (slot.dir == 0)
+							{
+								this.squares[slot.x + j][slot.y].letter = letters[j];
+								this.squares[slot.x + j][slot.y].correct = true;
+								this.squares[slot.x + j][slot.y].dir = slot.dir;
+								$(".letter[data-x=" + (slot.x + j) + "][data-y=" + (slot.y) + "]").html(letters[j]);
+							}
+
+							if (slot.dir == 1)
+							{
+								this.squares[slot.x][slot.y + j].letter = letters[j];
+								this.squares[slot.x][slot.y + j].correct = true;
+								this.squares[slot.x][slot.y + j].dir = slot.dir;
+								$(".letter[data-x=" + (slot.x) + "][data-y=" + (slot.y + j) + "]").html(letters[j]);
+							}
+
+							this.words[i].assigned = true;
+						}					
+					}
+				},
+				isWordSpaceAvailable: function (x, y, dir, word)
+				{
+					var letters = word.split("");
+
+					if (dir == 0)
+					{	
+						if ((x + letters.length) >= this.maxSize) return false;
+
+						for (var i = 0; i < letters.length; i++)
+						{
+							if (this.squares[x + i][y].dir == dir) return false;
+							if (this.squares[x + i][y].intersected) return false;
+
+							if (this.squares[x + i][y].letter != "" && this.squares[x + i][y].letter != letters[i]) return false;
+						}
+
+						return true;
+					}
+
+					if (dir == 1)
+					{
+						if ((y + letters.length) >= this.maxSize) return false;
+
+						for (var i = 0; i < letters.length; i++)
+						{
+							if (this.squares[x][y + i].dir == dir) return false;
+							if (this.squares[x][y + i].intersected) return false;
+
+							if (this.squares[x][y + i].letter != "" && this.squares[x][y + i].letter != letters[i]) return false;
+						}
+
+						return true;
+					}
+				},
+				generateRandomNo: function (max)
+				{
+					return Math.floor((Math.random() * (max)));
+				},
+				displayTheme: function ()
+				{
+					$(".theme .title").html(themes[this.themeIndex].title);
+					$(".theme .description").html(themes[this.themeIndex].description);
+					$(".theme .picture").attr("style", "background-image:url(" + themes[this.themeIndex].picture + ".png)");
+				},
+				displaySelected: function (x, y)
+				{
+					if (this.seconds > 0)
+					{
+						if (!this.squares[x][y].selected)
+						{
+							if (this.squares[x][y].correct)
+							{
+								this.squares[x][y].selected = true;
+								$(".letter[data-x=" + x + "][data-y=" + y + "]").addClass("correct");
+							}
+							else
+							{
+								$(".letter[data-x=" + x + "][data-y=" + y + "]").addClass("wrong");
+
+								setTimeout
+								(
+									() =>
+									{
+										$(".letter[data-x=" + x + "][data-y=" + y + "]").removeClass("wrong");	
+									}
+									,500
+								)
+							}						
+						}						
+					}
+				}				
+			};
+
+			$(document).ready
+			(
+				() =>
+				{
+	    			puzzle.begin();
+				}
+			);
+		</script>
+	</head>
+
+	<body>
+		<div class="container">
+			<div class="dashboard">
+				<div class="title">
+					<h1>Word Search</h1>
+
+					<div class="message">
+
+					</div>	
+
+					<button id="btnGo" onclick = "puzzle.begin();"></button>				
+				</div>
+					
+				<div class="timer">
+					<small>Time left</small>
+					<div class="seconds">0</div>
+				</div>
+			</div>
+
+			<div class="wordgrid">
+
+			</div>
+
+			<div class="theme">
+				<div class="title">
+
+				</div>
+
+				<div class="description">
+
+				</div>
+
+				<div class="picture">
+
+				</div>
+			</div>
+
+			<div class="score">
+				<div class="meter">
+					<div class="fill"></div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
